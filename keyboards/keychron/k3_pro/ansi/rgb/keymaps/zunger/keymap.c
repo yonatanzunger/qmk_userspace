@@ -93,9 +93,10 @@ bool process_accent_key(uint16_t keycode, keyrecord_t *record);
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Key maps
 
+// NB: We start from NEW_SAFE_RANGE on Keychron because the keyboard defines a bunch of symbols too!
 enum custom_keycodes {
   // OS-dependent macros
-  KC_PLATFORM = SAFE_RANGE,  // Platform select
+  KC_PLATFORM = NEW_SAFE_RANGE,  // Platform select
   KC_VC_MUTE,  // Video conference mute
   KC_VC_HAND,  // Video conference hand-raise
   KC_SCRNSHT,  // Screenshot (gui-shift-S on Windows, gui-shift-4 on Mac)
@@ -141,12 +142,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // The function layer mostly contains the accent marks, but also has a few meta-control
   // operations. The accent marks are placed by analogy with Mac OS.
   [_FUNCTION] = LAYOUT_ansi_84(
-     QK_BOOT,     KC_F1,    KC_F2,    KC_F3,    KC_F4,    KC_F5,    KC_F6,    KC_F7,    KC_F8,    KC_F9,    KC_F10,   KC_F11,   KC_F12,   KC_SCRNSHT,  KC_TRNS,  RGB_TOG,  // fn
-     KC_GRV,      BT_HST1,  BT_HST2,  BT_HST3,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,               XXXXXXX,  // num
-     KC_PLATFORM, XXXXXXX,  XXXXXXX,  KC_CAGU,  XXXXXXX,  XXXXXXX,  XXXXXXX,  KC_CDIA,  KC_CCIR,  XXXXXXX,  XXXXXXX,  H(200e),  H(200f),  XXXXXXX,               XXXXXXX,  // qwe
-     KC_TRNS,     XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,            XXXXXXX,               XXXXXXX,  // asd
-     KC_TRNS,               XXXXXXX,  XXXXXXX,  KC_CCED,  XXXXXXX,  BAT_LVL,  KC_CTIL,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,            KC_TRNS,     XXXXXXX,  XXXXXXX,  // zxc
-     KC_TRNS,     KC_TRNS,  KC_TRNS,                                H(200b),                                KC_TRNS,  KC_TRNS,  KC_TRNS,  XXXXXXX,     XXXXXXX,  XXXXXXX), // spc
+     QK_BOOT,  KC_F1,    KC_F2,    KC_F3,    KC_F4,    KC_F5,    KC_F6,    KC_F7,    KC_F8,    KC_F9,    KC_F10,   KC_F11,   KC_F12,     KC_SCRNSHT,  KC_TRNS,  RGB_TOG,  // fn
+     KC_GRV,   BT_HST1,  BT_HST2,  BT_HST3,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,    XXXXXXX,               XXXXXXX,  // num
+     XXXXXXX,  XXXXXXX,  XXXXXXX,  KC_CAGU,  XXXXXXX,  XXXXXXX,  XXXXXXX,  KC_CDIA,  KC_CCIR,  XXXXXXX,  XXXXXXX,  H(200e),  H(200f),    XXXXXXX,               XXXXXXX,  // qwe
+     KC_TRNS,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,              XXXXXXX,               XXXXXXX,  // asd
+     KC_TRNS,            XXXXXXX,  XXXXXXX,  KC_CCED,  XXXXXXX,  BAT_LVL,  KC_CTIL,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,              KC_TRNS,     XXXXXXX,  XXXXXXX,  // zxc
+     KC_TRNS,  KC_TRNS,  KC_TRNS,                                H(200b),                                KC_TRNS,  KC_TRNS,  KC_TRNS,    XXXXXXX,     XXXXXXX,  XXXXXXX), // spc
 };
 
 
@@ -512,6 +513,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     );
 }
 
-void keyboard_post_init_user() {
-  set_os_mode(OS_WINDOWS);
+bool dip_switch_update_user(uint8_t index, bool active) {
+    // dip_switch_update_kb is doing something quite clever for keymap selection that works well
+    // for their default keymap, but we want to actually toggle our entire OS mode on this basis.
+    // So we undo what it does and do our own logic.
+    // Use the DIP switch for our platform select! This replaces the use of KC_PLATFORM and a
+    // default value in keyboard_post_init_user() required on keyboards without this lovely device.
+    if (index == 0) {
+        default_layer_set(0);  // Undo k3_pro default logic; we don't use layers this way.
+        set_os_mode(active ? OS_MAC : OS_WINDOWS);
+    }
+    return FALLTHROUGH;
 }
