@@ -463,8 +463,8 @@ void toggle_os_mode(void) {
 // msec to hold the platform key to trigger a switch
 #define PLATFORM_HOLD_DURATION 750
 // Values for our OS-dependent keys, as arrays keyed by OS mode. Use Meet shortcuts on Mac, Teams on Windows
-const char *VC_MUTE_VALUES[NUM_OS_MODES] = {SS_LCTL(SS_LSFT("m")), SS_LCMD("d")};
-const char *VC_HAND_VALUES[NUM_OS_MODES] = {SS_LCTL(SS_LSFT("k")), SS_LCTL(SS_LCMD("h"))};
+const char *VC_MUTE_VALUES[NUM_OS_MODES] = {SS_LCTL(SS_LSFT("m")), SS_LCMD(SS_LSFT("m"))};
+const char *VC_HAND_VALUES[NUM_OS_MODES] = {SS_LCTL(SS_LSFT("k")), SS_LCMD(SS_LSFT("k"))};
 const char *SCRNSHT_VALUES[NUM_OS_MODES] = {SS_LGUI(SS_LSFT("s")), SS_LCMD(SS_LSFT("4"))};
 
 bool process_os_key(uint16_t keycode, keyrecord_t *record) {
@@ -511,5 +511,5 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 void keyboard_post_init_user() {
-  set_os_mode(OS_WINDOWS);
+  set_os_mode(OS_MAC);
 }
